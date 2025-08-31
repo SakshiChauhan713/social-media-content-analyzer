@@ -279,15 +279,22 @@ export default function App() {
             </div>
 
             {/* Extracted Text */}
-            <textarea
-  className={`w-full h-48 p-3 border rounded-lg font-mono text-sm transition-colors ${
-    darkMode
-      ? "bg-gray-900 text-gray-100"
-      : "bg-pink-50 text-gray-800"   // ✅ light mode me pink shade
-  }`}
-  value={text}
-  readOnly
-/>
+            {text && (
+  <div className="mb-6">
+    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
+      📝 Extracted Text
+    </h2>
+    <textarea
+      className={`w-full h-48 p-3 border rounded-lg font-mono text-sm transition-colors
+        ${darkMode 
+          ? "bg-gray-900 text-gray-100" 
+          : "bg-pink-50 text-gray-800"  // ✅ Light mode me soft pink shade
+        }`}
+      value={text}
+      readOnly
+    />
+  </div>
+)}
 
             {/* Suggestions */}
             {suggestions.length > 0 && (
