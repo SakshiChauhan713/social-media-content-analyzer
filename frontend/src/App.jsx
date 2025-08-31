@@ -357,64 +357,71 @@ export default function App() {
 
             {/* Extracted Text */}
             {text && (
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                  📝 Extracted Text
-                </h2>
-                <textarea
-                  className="w-full h-48 p-3 border rounded-lg font-mono text-sm bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-100"
-                  value={text}
-                  readOnly
-                />
-              </div>
-            )}
+  <div className="mb-6">
+    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
+      📝 Extracted Text
+    </h2>
+    <textarea
+      className="w-full h-48 p-3 border rounded-lg 
+                 bg-white text-gray-800 
+                 dark:bg-gray-900 dark:text-gray-100 
+                 font-mono text-sm"
+      value={text}
+      readOnly
+    />
+  </div>
+)}
 
             {/* Suggestions */}
             {suggestions.length > 0 && (
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                  💡 Suggestions
-                </h2>
-                <ul className="list-disc pl-6 space-y-1 text-gray-700 dark:text-gray-300">
-                  {suggestions.map((s, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <span>✨</span> {s}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+  <div className="mb-6">
+    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
+      💡 Suggestions
+    </h2>
+    <ul className="list-disc pl-6 space-y-1 text-gray-800 dark:text-gray-300">
+      {suggestions.map((s, i) => (
+        <li key={i} className="flex items-start gap-2">
+          <span>✨</span> {s}
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
 
             {/* History with Clear */}
             {history.length > 0 && (
-              <div className="rounded-lg p-4 shadow-inner bg-purple-50 dark:bg-gray-900">
-                <div className="flex justify-between items-center mb-2">
-                  <h2 className="text-lg font-semibold">📂 History</h2>
-                  <button
-                    onClick={() => {
-                      setHistory([]);
-                      localStorage.removeItem("history");
-                    }}
-                    className="text-red-500 text-sm hover:underline"
-                  >
-                    🗑 Clear
-                  </button>
-                </div>
-                <ul className="space-y-2 text-sm">
-                  {history.map((h, i) => (
-                    <li
-                      key={i}
-                      className="p-2 border rounded flex justify-between bg-white/80 dark:bg-gray-800 dark:border-gray-700"
-                    >
-                      <span className="font-medium">{h.filename}</span>
-                      <span className="text-gray-600 dark:text-gray-400">
-                        {h.words} words • {h.hashtags} tags • {h.sentiment}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+  <div className="rounded-lg p-4 shadow-inner 
+                  bg-pink-50 text-gray-800 
+                  dark:bg-gray-900 dark:text-gray-100">
+    <div className="flex justify-between items-center mb-2">
+      <h2 className="text-lg font-semibold">📂 History</h2>
+      <button
+        onClick={() => {
+          setHistory([]);
+          localStorage.removeItem("history");
+        }}
+        className="text-red-500 text-sm hover:underline"
+      >
+        🗑 Clear
+      </button>
+    </div>
+    <ul className="space-y-2 text-sm">
+      {history.map((h, i) => (
+        <li
+          key={i}
+          className="p-2 border rounded flex justify-between 
+                     bg-purple-50 text-gray-800 
+                     dark:bg-gray-800 dark:text-gray-200"
+        >
+          <span className="font-medium">{h.filename}</span>
+          <span className="text-gray-500 dark:text-gray-400">
+            {h.words} words • {h.hashtags} tags • {h.sentiment}
+          </span>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
 
             {/* Footer */}
             <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-8">
