@@ -34,26 +34,21 @@ export default function App() {
     }
   }, [darkMode]);
 
-  // ✅ Load history from LocalStorage on app start
+  // ✅ Load history from LocalStorage
   useEffect(() => {
     const savedHistory = localStorage.getItem("history");
-    if (savedHistory) {
-      setHistory(JSON.parse(savedHistory));
-    }
+    if (savedHistory) setHistory(JSON.parse(savedHistory));
   }, []);
 
-  // ✅ Save history to LocalStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("history", JSON.stringify(history));
   }, [history]);
 
-  // ✅ Toast notification
   const showToast = (msg, type = "info") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
   };
 
-  // Reset states on new file
   const resetStates = () => {
     setText("");
     setSuggestions([]);
@@ -105,37 +100,31 @@ export default function App() {
     link.click();
   };
 
-  // Upload + Analyze
   const handleUpload = async () => {
     if (!file) return showToast("⚠ Please select a file first!", "warning");
     setLoading(true);
     resetStates();
 
     try {
-      // Extract
       const form = new FormData();
       form.append("file", file);
       const res = await fetch(`${API}/extract`, { method: "POST", body: form });
-
       if (!res.ok) throw new Error(`Extract failed (${res.status})`);
 
       const data = await res.json();
       setText(data.text || "");
       if (data.warning) showToast(data.warning, "warning");
 
-      // Analyze
       const res2 = await fetch(`${API}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: data.text || "" }),
       });
-
       if (!res2.ok) throw new Error(`Analyze failed (${res2.status})`);
 
       const analysis = await res2.json();
       setSuggestions(analysis.suggestions || []);
 
-      // Stats
       const words = (data.text || "").trim().split(/\s+/).filter(Boolean);
       const hashtags = (data.text.match(/#/g) || []).length;
       const questions = (data.text.match(/\?/g) || []).length;
@@ -166,10 +155,10 @@ export default function App() {
 
   return (
     <div
-      className={`min-h-screen p-6 ${
+      className={`min-h-screen p-6 transition-colors ${
         darkMode
           ? "bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-gray-100"
-          : "bg-gradient-to-r from-pink-50 via-purple-50 to-indigo-50 text-gray-900"
+          : "bg-gradient-to-r from-white via-pink-50 to-purple-50 text-gray-900"
       }`}
     >
       {/* Toast */}
@@ -208,16 +197,19 @@ export default function App() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Upload Section */}
           <div
-            className={`rounded-2xl shadow-xl p-6 ${
-              darkMode ? "bg-gray-800" : "bg-white"
+            className={`rounded-2xl shadow-xl p-6 transition-colors ${
+              darkMode ? "bg-gray-800" : "bg-white/90"
             }`}
           >
             <div
-              className={`flex flex-col items-center gap-4 mb-6 w-full border-2 border-dashed rounded-lg p-6 transition
-              ${
+              className={`flex flex-col items-center gap-4 mb-6 w-full border-2 border-dashed rounded-lg p-6 transition-colors ${
                 dragActive
-                  ? "border-purple-500 bg-purple-50 dark:bg-gray-700"
-                  : "border-gray-300 bg-white/50 dark:bg-gray-900"
+                  ? darkMode
+                    ? "border-purple-400 bg-gray-700"
+                    : "border-purple-500 bg-purple-50"
+                  : darkMode
+                  ? "border-gray-600 bg-gray-900"
+                  : "border-pink-200 bg-white"
               }`}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -305,25 +297,25 @@ export default function App() {
 
           {/* Results Section */}
           <div
-            className={`rounded-2xl shadow-xl p-6 ${
-              darkMode ? "bg-gray-800" : "bg-white"
+            className={`rounded-2xl shadow-xl p-6 transition-colors ${
+              darkMode ? "bg-gray-800" : "bg-white/90"
             }`}
           >
             {/* Stats */}
             <div className="flex flex-wrap gap-3 justify-center mb-6">
-              <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">
+              <span className="px-3 py-1 rounded-full text-sm bg-pink-100 text-purple-700 dark:bg-gray-700 dark:text-gray-100">
                 🔡 Chars: {stats.chars}
               </span>
-              <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">
+              <span className="px-3 py-1 rounded-full text-sm bg-pink-100 text-purple-700 dark:bg-gray-700 dark:text-gray-100">
                 📖 Words: {stats.words}
               </span>
-              <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">
+              <span className="px-3 py-1 rounded-full text-sm bg-pink-100 text-purple-700 dark:bg-gray-700 dark:text-gray-100">
                 #️⃣ Tags: {stats.hashtags}
               </span>
-              <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">
+              <span className="px-3 py-1 rounded-full text-sm bg-pink-100 text-purple-700 dark:bg-gray-700 dark:text-gray-100">
                 ❓ Questions: {stats.questions}
               </span>
-              <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">
+              <span className="px-3 py-1 rounded-full text-sm bg-pink-100 text-purple-700 dark:bg-gray-700 dark:text-gray-100">
                 😀 Sentiment: {stats.sentiment}
               </span>
             </div>
@@ -335,7 +327,7 @@ export default function App() {
                   📝 Extracted Text
                 </h2>
                 <textarea
-                  className="w-full h-48 p-3 border rounded-lg bg-gray-50 dark:bg-gray-900 font-mono text-sm"
+                  className="w-full h-48 p-3 border rounded-lg font-mono text-sm bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-100"
                   value={text}
                   readOnly
                 />
@@ -358,9 +350,9 @@ export default function App() {
               </div>
             )}
 
-            {/* History with Clear button */}
+            {/* History with Clear */}
             {history.length > 0 && (
-              <div className="bg-white/70 dark:bg-gray-900 rounded-lg p-4 shadow-inner">
+              <div className="rounded-lg p-4 shadow-inner bg-purple-50 dark:bg-gray-900">
                 <div className="flex justify-between items-center mb-2">
                   <h2 className="text-lg font-semibold">📂 History</h2>
                   <button
@@ -377,10 +369,10 @@ export default function App() {
                   {history.map((h, i) => (
                     <li
                       key={i}
-                      className="p-2 border rounded flex justify-between dark:border-gray-700"
+                      className="p-2 border rounded flex justify-between bg-white/80 dark:bg-gray-800 dark:border-gray-700"
                     >
                       <span className="font-medium">{h.filename}</span>
-                      <span className="text-gray-500 dark:text-gray-400">
+                      <span className="text-gray-600 dark:text-gray-400">
                         {h.words} words • {h.hashtags} tags • {h.sentiment}
                       </span>
                     </li>
