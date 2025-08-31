@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";  // useEffect add kiya
 
 const API = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
 console.log("API Base from env:", import.meta.env.VITE_API_BASE);
@@ -8,7 +8,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [text, setText] = useState("");
   const [suggestions, setSuggestions] = useState([]);
-  const [toast, setToast] = useState(null); // { msg: string, type: "info" | "error" | "warning" }
+  const [toast, setToast] = useState(null); 
   const [history, setHistory] = useState([]);
   const [stats, setStats] = useState({
     chars: 0,
@@ -19,6 +19,21 @@ export default function App() {
   });
 
   const [dragActive, setDragActive] = useState(false);
+
+  // ✅ Load history from LocalStorage on app start
+  useEffect(() => {
+    const savedHistory = localStorage.getItem("history");
+    if (savedHistory) {
+      setHistory(JSON.parse(savedHistory));
+    }
+  }, []);
+
+  // ✅ Save history to LocalStorage whenever it changes
+  useEffect(() => {
+    if (history.length > 0) {
+      localStorage.setItem("history", JSON.stringify(history));
+    }
+  }, [history]);
 
   // Show toast
   const showToast = (msg, type = "info") => {
@@ -290,10 +305,21 @@ export default function App() {
               </div>
             )}
 
-            {/* History */}
+            {/* History with Clear button */}
             {history.length > 0 && (
               <div className="bg-white/70 rounded-lg p-4 shadow-inner">
-                <h2 className="text-lg font-semibold mb-2">📂 History (this session)</h2>
+                <div className="flex justify-between items-center mb-2">
+                  <h2 className="text-lg font-semibold">📂 History</h2>
+                  <button
+                    onClick={() => {
+                      setHistory([]);
+                      localStorage.removeItem("history");
+                    }}
+                    className="text-red-500 text-sm hover:underline"
+                  >
+                    🗑 Clear
+                  </button>
+                </div>
                 <ul className="space-y-2 text-sm">
                   {history.map((h, i) => (
                     <li key={i} className="p-2 border rounded flex justify-between">
@@ -318,4 +344,3 @@ export default function App() {
     </div>
   );
 }
-
