@@ -189,7 +189,7 @@ export default function App() {
                        bg-gray-200 hover:bg-gray-300 
                        dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
           >
-            {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
+            {darkMode ? " DARK MODE" : "  LIGHT Mode"}
           </button>
         </div>
 
@@ -302,23 +302,58 @@ export default function App() {
             }`}
           >
             {/* Stats */}
-            <div className="flex flex-wrap gap-3 justify-center mb-6">
-              <span className="px-3 py-1 rounded-full text-sm bg-pink-100 text-purple-700 dark:bg-gray-700 dark:text-gray-100">
-                🔡 Chars: {stats.chars}
-              </span>
-              <span className="px-3 py-1 rounded-full text-sm bg-pink-100 text-purple-700 dark:bg-gray-700 dark:text-gray-100">
-                📖 Words: {stats.words}
-              </span>
-              <span className="px-3 py-1 rounded-full text-sm bg-pink-100 text-purple-700 dark:bg-gray-700 dark:text-gray-100">
-                #️⃣ Tags: {stats.hashtags}
-              </span>
-              <span className="px-3 py-1 rounded-full text-sm bg-pink-100 text-purple-700 dark:bg-gray-700 dark:text-gray-100">
-                ❓ Questions: {stats.questions}
-              </span>
-              <span className="px-3 py-1 rounded-full text-sm bg-pink-100 text-purple-700 dark:bg-gray-700 dark:text-gray-100">
-                😀 Sentiment: {stats.sentiment}
-              </span>
-            </div>
+           <div className="flex flex-wrap gap-3 justify-center mb-6">
+  <span
+    className={`px-3 py-1 rounded-full text-sm 
+                ${darkMode 
+                  ? "bg-gray-700 text-white" 
+                  : "bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow"}`
+    }
+  >
+    🔡 Chars: {stats.chars}
+  </span>
+
+  <span
+    className={`px-3 py-1 rounded-full text-sm 
+                ${darkMode 
+                  ? "bg-gray-700 text-white" 
+                  : "bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow"}`
+    }
+  >
+    📖 Words: {stats.words}
+  </span>
+
+  <span
+    className={`px-3 py-1 rounded-full text-sm 
+                ${darkMode 
+                  ? "bg-gray-700 text-white" 
+                  : "bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow"}`
+    }
+  >
+    #️⃣ Tags: {stats.hashtags}
+  </span>
+
+  <span
+    className={`px-3 py-1 rounded-full text-sm 
+                ${darkMode 
+                  ? "bg-gray-700 text-white" 
+                  : "bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow"}`
+    }
+  >
+    ❓ Questions: {stats.questions}
+  </span>
+
+  <span
+    className={`px-3 py-1 rounded-full text-sm 
+                ${darkMode 
+                  ? "bg-gray-700 text-white" 
+                  : "bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow"}`
+    }
+  >
+    😀 Sentiment: {stats.sentiment}
+  </span>
+</div>
+
 
             {/* Extracted Text */}
             {text && (
