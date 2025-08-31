@@ -20,7 +20,7 @@ export default function App() {
 
   const [dragActive, setDragActive] = useState(false);
 
-  // 🌙 Dark mode state (saved in LocalStorage)
+  // 🌙 Dark mode state
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("darkMode") === "true"
   );
@@ -34,12 +34,11 @@ export default function App() {
     }
   }, [darkMode]);
 
-  // ✅ Load history from LocalStorage
+  // ✅ Load + Save history
   useEffect(() => {
     const savedHistory = localStorage.getItem("history");
     if (savedHistory) setHistory(JSON.parse(savedHistory));
   }, []);
-
   useEffect(() => {
     localStorage.setItem("history", JSON.stringify(history));
   }, [history]);
@@ -189,7 +188,7 @@ export default function App() {
                        bg-gray-200 hover:bg-gray-300 
                        dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
           >
-            {darkMode ? " DARK MODE" : "  LIGHT Mode"}
+            {darkMode ? " DARK MODE" : " LIGHT MODE"}
           </button>
         </div>
 
@@ -198,9 +197,10 @@ export default function App() {
           {/* Upload Section */}
           <div
             className={`rounded-2xl shadow-xl p-6 transition-colors ${
-              darkMode ? "bg-gray-800" : "bg-white/90"
+              darkMode ? "bg-gray-800" : "bg-white"
             }`}
           >
+            {/* File Upload */}
             <div
               className={`flex flex-col items-center gap-4 mb-6 w-full border-2 border-dashed rounded-lg p-6 transition-colors ${
                 dragActive
@@ -215,17 +215,8 @@ export default function App() {
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
             >
-              <input
-                type="file"
-                accept=".pdf,.png,.jpg,.jpeg,.webp,.tiff,.bmp"
-                onChange={handleFileChange}
-                className="hidden"
-                id="fileInput"
-              />
-              <label
-                htmlFor="fileInput"
-                className="cursor-pointer text-center text-gray-600 dark:text-gray-300"
-              >
+              <input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.tiff,.bmp" onChange={handleFileChange} className="hidden" id="fileInput"/>
+              <label htmlFor="fileInput" className="cursor-pointer text-center text-gray-600 dark:text-gray-300">
                 <p className="text-lg">📂 Drag & Drop your file here</p>
                 <p className="text-sm">or click to browse</p>
               </label>
@@ -236,8 +227,8 @@ export default function App() {
                 </p>
               )}
 
+              {/* Buttons */}
               <div className="flex gap-3 mt-3 flex-wrap justify-center">
-                {/* Upload Button with spinner */}
                 <button
                   onClick={handleUpload}
                   disabled={loading || !file}
@@ -249,25 +240,9 @@ export default function App() {
                 >
                   {loading ? (
                     <>
-                      <svg
-                        className="animate-spin h-5 w-5 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                        ></path>
+                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                       </svg>
                       Processing...
                     </>
@@ -276,19 +251,11 @@ export default function App() {
                   )}
                 </button>
 
-                <button
-                  onClick={handleDownloadOriginal}
-                  disabled={!file}
-                  className="px-4 py-2 rounded-full border text-purple-700 border-purple-200 hover:bg-purple-50 dark:border-gray-600 dark:text-purple-300 dark:hover:bg-gray-700"
-                >
+                <button onClick={handleDownloadOriginal} disabled={!file} className="px-4 py-2 rounded-full border text-purple-700 border-purple-200 hover:bg-purple-50 dark:border-gray-600 dark:text-purple-300 dark:hover:bg-gray-700">
                   📂 Download Original
                 </button>
 
-                <button
-                  onClick={handleDownloadText}
-                  disabled={!text}
-                  className="px-4 py-2 rounded-full border text-purple-700 border-purple-200 hover:bg-purple-50 dark:border-gray-600 dark:text-purple-300 dark:hover:bg-gray-700"
-                >
+                <button onClick={handleDownloadText} disabled={!text} className="px-4 py-2 rounded-full border text-purple-700 border-purple-200 hover:bg-purple-50 dark:border-gray-600 dark:text-purple-300 dark:hover:bg-gray-700">
                   📝 Download Extracted Text
                 </button>
               </div>
@@ -296,137 +263,64 @@ export default function App() {
           </div>
 
           {/* Results Section */}
-          <div
-            className={`rounded-2xl shadow-xl p-6 transition-colors ${
-              darkMode ? "bg-gray-800" : "bg-white/90"
-            }`}
-          >
+          <div className={`rounded-2xl shadow-xl p-6 transition-colors ${darkMode ? "bg-gray-800" : "bg-white"}`}>
+            
             {/* Stats */}
-           <div className="flex flex-wrap gap-3 justify-center mb-6">
-  <span
-    className={`px-3 py-1 rounded-full text-sm 
-                ${darkMode 
-                  ? "bg-gray-700 text-white" 
-                  : "bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow"}`
-    }
-  >
-    🔡 Chars: {stats.chars}
-  </span>
-
-  <span
-    className={`px-3 py-1 rounded-full text-sm 
-                ${darkMode 
-                  ? "bg-gray-700 text-white" 
-                  : "bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow"}`
-    }
-  >
-    📖 Words: {stats.words}
-  </span>
-
-  <span
-    className={`px-3 py-1 rounded-full text-sm 
-                ${darkMode 
-                  ? "bg-gray-700 text-white" 
-                  : "bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow"}`
-    }
-  >
-    #️⃣ Tags: {stats.hashtags}
-  </span>
-
-  <span
-    className={`px-3 py-1 rounded-full text-sm 
-                ${darkMode 
-                  ? "bg-gray-700 text-white" 
-                  : "bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow"}`
-    }
-  >
-    ❓ Questions: {stats.questions}
-  </span>
-
-  <span
-    className={`px-3 py-1 rounded-full text-sm 
-                ${darkMode 
-                  ? "bg-gray-700 text-white" 
-                  : "bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow"}`
-    }
-  >
-    😀 Sentiment: {stats.sentiment}
-  </span>
-</div>
-
+            <div className="flex flex-wrap gap-3 justify-center mb-6">
+              {["Chars", "Words", "Tags", "Questions", "Sentiment"].map((label, i) => (
+                <span key={i} className={`px-3 py-1 rounded-full text-sm ${darkMode ? "bg-gray-700 text-white" : "bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow"}`}>
+                  {label === "Chars" && `🔡 ${label}: ${stats.chars}`}
+                  {label === "Words" && `📖 ${label}: ${stats.words}`}
+                  {label === "Tags" && `#️⃣ ${label}: ${stats.hashtags}`}
+                  {label === "Questions" && `❓ ${label}: ${stats.questions}`}
+                  {label === "Sentiment" && `😀 ${label}: ${stats.sentiment}`}
+                </span>
+              ))}
+            </div>
 
             {/* Extracted Text */}
             {text && (
-  <div className="mb-6">
-    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
-      📝 Extracted Text
-    </h2>
-    <textarea
-      className="w-full h-48 p-3 border rounded-lg 
-                 bg-white text-gray-800 
-                 dark:bg-gray-900 dark:text-gray-100 
-                 font-mono text-sm"
-      value={text}
-      readOnly
-    />
-  </div>
-)}
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">📝 Extracted Text</h2>
+                <textarea className="w-full h-48 p-3 border rounded-lg bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-100 font-mono text-sm" value={text} readOnly/>
+              </div>
+            )}
 
             {/* Suggestions */}
             {suggestions.length > 0 && (
-  <div className="mb-6">
-    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
-      💡 Suggestions
-    </h2>
-    <ul className="list-disc pl-6 space-y-1 text-gray-800 dark:text-gray-300">
-      {suggestions.map((s, i) => (
-        <li key={i} className="flex items-start gap-2">
-          <span>✨</span> {s}
-        </li>
-      ))}
-    </ul>
-  </div>
-)}
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">💡 Suggestions</h2>
+                <ul className="list-disc pl-6 space-y-1 text-gray-800 dark:text-gray-300">
+                  {suggestions.map((s, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span>✨</span> {s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-            {/* History with Clear */}
+            {/* History */}
             {history.length > 0 && (
-  <div className="rounded-lg p-4 shadow-inner 
-                  bg-pink-50 text-gray-800 
-                  dark:bg-gray-900 dark:text-gray-100">
-    <div className="flex justify-between items-center mb-2">
-      <h2 className="text-lg font-semibold">📂 History</h2>
-      <button
-        onClick={() => {
-          setHistory([]);
-          localStorage.removeItem("history");
-        }}
-        className="text-red-500 text-sm hover:underline"
-      >
-        🗑 Clear
-      </button>
-    </div>
-    <ul className="space-y-2 text-sm">
-      {history.map((h, i) => (
-        <li
-          key={i}
-          className="p-2 border rounded flex justify-between 
-                     bg-purple-50 text-gray-800 
-                     dark:bg-gray-800 dark:text-gray-200"
-        >
-          <span className="font-medium">{h.filename}</span>
-          <span className="text-gray-500 dark:text-gray-400">
-            {h.words} words • {h.hashtags} tags • {h.sentiment}
-          </span>
-        </li>
-      ))}
-    </ul>
-  </div>
-)}
+              <div className="rounded-lg p-4 shadow-inner bg-pink-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100">
+                <div className="flex justify-between items-center mb-2">
+                  <h2 className="text-lg font-semibold">📂 History</h2>
+                  <button onClick={() => { setHistory([]); localStorage.removeItem("history"); }} className="text-red-500 text-sm hover:underline">🗑 Clear</button>
+                </div>
+                <ul className="space-y-2 text-sm">
+                  {history.map((h, i) => (
+                    <li key={i} className="p-2 border rounded flex justify-between bg-purple-50 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                      <span className="font-medium">{h.filename}</span>
+                      <span className="text-gray-500 dark:text-gray-400">{h.words} words • {h.hashtags} tags • {h.sentiment}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Footer */}
             <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-8">
-              Made with ❤️ using <span className="font-medium">FastAPI</span> +{" "}
-              <span className="font-medium">React</span>
+              Made with ❤️ using <span className="font-medium">FastAPI</span> + <span className="font-medium">React</span>
             </div>
           </div>
         </div>
