@@ -27,6 +27,11 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem("darkMode", darkMode);
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   }, [darkMode]);
 
   // ✅ Load history from LocalStorage on app start
@@ -39,17 +44,16 @@ export default function App() {
 
   // ✅ Save history to LocalStorage whenever it changes
   useEffect(() => {
-    if (history.length > 0) {
-      localStorage.setItem("history", JSON.stringify(history));
-    }
+    localStorage.setItem("history", JSON.stringify(history));
   }, [history]);
 
-  // Show toast
+  // ✅ Toast notification
   const showToast = (msg, type = "info") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
   };
 
+  // Reset states on new file
   const resetStates = () => {
     setText("");
     setSuggestions([]);
@@ -101,6 +105,7 @@ export default function App() {
     link.click();
   };
 
+  // Upload + Analyze
   const handleUpload = async () => {
     if (!file) return showToast("⚠ Please select a file first!", "warning");
     setLoading(true);
@@ -112,16 +117,11 @@ export default function App() {
       form.append("file", file);
       const res = await fetch(`${API}/extract`, { method: "POST", body: form });
 
-      if (!res.ok) {
-        throw new Error(`Extract failed (${res.status})`);
-      }
+      if (!res.ok) throw new Error(`Extract failed (${res.status})`);
 
       const data = await res.json();
       setText(data.text || "");
-
-      if (data.warning) {
-        showToast(data.warning, "warning");
-      }
+      if (data.warning) showToast(data.warning, "warning");
 
       // Analyze
       const res2 = await fetch(`${API}/analyze`, {
@@ -130,9 +130,7 @@ export default function App() {
         body: JSON.stringify({ text: data.text || "" }),
       });
 
-      if (!res2.ok) {
-        throw new Error(`Analyze failed (${res2.status})`);
-      }
+      if (!res2.ok) throw new Error(`Analyze failed (${res2.status})`);
 
       const analysis = await res2.json();
       setSuggestions(analysis.suggestions || []);
@@ -156,7 +154,6 @@ export default function App() {
         sentiment,
       };
       setStats(newStats);
-
       setHistory((prev) => [...prev, { filename: file.name, ...newStats }]);
 
       showToast("✅ Analysis complete!", "info");
@@ -168,200 +165,234 @@ export default function App() {
   };
 
   return (
-    <div className={darkMode ? "dark" : ""}>
-      <div className="min-h-screen bg-gradient-to-r from-pink-50 via-purple-50 to-indigo-50 
-                      dark:from-gray-900 dark:via-gray-800 dark:to-gray-900
-                      p-6 text-gray-900 dark:text-gray-100">
-        {/* Toast */}
-        {toast && (
+    <div
+      className={`min-h-screen p-6 ${
+        darkMode
+          ? "bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-gray-100"
+          : "bg-gradient-to-r from-pink-50 via-purple-50 to-indigo-50 text-gray-900"
+      }`}
+    >
+      {/* Toast */}
+      {toast && (
+        <div
+          className={`fixed top-4 right-4 px-4 py-2 rounded-lg shadow text-sm ${
+            toast.type === "error"
+              ? "bg-red-600 text-white"
+              : toast.type === "warning"
+              ? "bg-yellow-400 text-black"
+              : "bg-black text-white"
+          }`}
+        >
+          {toast.msg}
+        </div>
+      )}
+
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-4xl font-extrabold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-500 to-indigo-600">
+          📑 Social Media Content Analyzer
+        </h1>
+
+        {/* 🌙 Dark Mode Toggle */}
+        <div className="flex justify-center mb-4">
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="px-4 py-2 rounded-full text-sm font-medium 
+                       bg-gray-200 hover:bg-gray-300 
+                       dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+          >
+            {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
+          </button>
+        </div>
+
+        {/* Responsive Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Upload Section */}
           <div
-            className={`fixed top-4 right-4 px-4 py-2 rounded-lg shadow text-sm ${
-              toast.type === "error"
-                ? "bg-red-600 text-white"
-                : toast.type === "warning"
-                ? "bg-yellow-400 text-black"
-                : "bg-black text-white"
+            className={`rounded-2xl shadow-xl p-6 ${
+              darkMode ? "bg-gray-800" : "bg-white"
             }`}
           >
-            {toast.msg}
-          </div>
-        )}
-
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-extrabold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-500 to-indigo-600">
-            📑 Social Media Content Analyzer
-          </h1>
-
-          {/* 🌙 Dark Mode Toggle */}
-          <div className="flex justify-center mb-4">
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="px-4 py-2 rounded-full text-sm font-medium 
-                         bg-gray-200 hover:bg-gray-300 
-                         dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+            <div
+              className={`flex flex-col items-center gap-4 mb-6 w-full border-2 border-dashed rounded-lg p-6 transition
+              ${
+                dragActive
+                  ? "border-purple-500 bg-purple-50 dark:bg-gray-700"
+                  : "border-gray-300 bg-white/50 dark:bg-gray-900"
+              }`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
             >
-              {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
-            </button>
-          </div>
-
-          {/* Responsive Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Upload Section */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
-              <div
-                className={`flex flex-col items-center gap-4 mb-6 w-full border-2 border-dashed rounded-lg p-6 transition
-                ${dragActive ? "border-purple-500 bg-purple-50 dark:bg-gray-700" : "border-gray-300 bg-white/50 dark:bg-gray-900"}`}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
+              <input
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg,.webp,.tiff,.bmp"
+                onChange={handleFileChange}
+                className="hidden"
+                id="fileInput"
+              />
+              <label
+                htmlFor="fileInput"
+                className="cursor-pointer text-center text-gray-600 dark:text-gray-300"
               >
-                <input
-                  type="file"
-                  accept=".pdf,.png,.jpg,.jpeg,.webp,.tiff,.bmp"
-                  onChange={handleFileChange}
-                  className="hidden"
-                  id="fileInput"
-                />
-                <label htmlFor="fileInput" className="cursor-pointer text-center text-gray-600 dark:text-gray-300">
-                  <p className="text-lg">📂 Drag & Drop your file here</p>
-                  <p className="text-sm">or click to browse</p>
-                </label>
+                <p className="text-lg">📂 Drag & Drop your file here</p>
+                <p className="text-sm">or click to browse</p>
+              </label>
 
-                {file && (
-                  <p className="text-sm text-gray-500 mt-2 dark:text-gray-400">
-                    Selected: <span className="font-medium">{file.name}</span>
-                  </p>
-                )}
+              {file && (
+                <p className="text-sm text-gray-500 mt-2 dark:text-gray-400">
+                  Selected: <span className="font-medium">{file.name}</span>
+                </p>
+              )}
 
-                <div className="flex gap-3 mt-3 flex-wrap justify-center">
-                  {/* Upload Button with spinner */}
-                  <button
-                    onClick={handleUpload}
-                    disabled={loading || !file}
-                    className="px-6 py-2 rounded-full font-semibold 
-                               bg-gradient-to-r from-purple-500 to-pink-500 
-                               text-white shadow 
-                               hover:from-purple-600 hover:to-pink-600 
-                               disabled:bg-gray-400 flex items-center gap-2"
-                  >
-                    {loading ? (
-                      <>
-                        <svg
-                          className="animate-spin h-5 w-5 text-white"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                          ></path>
-                        </svg>
-                        Processing...
-                      </>
-                    ) : (
-                      "🚀 Upload & Analyze"
-                    )}
-                  </button>
+              <div className="flex gap-3 mt-3 flex-wrap justify-center">
+                {/* Upload Button with spinner */}
+                <button
+                  onClick={handleUpload}
+                  disabled={loading || !file}
+                  className="px-6 py-2 rounded-full font-semibold 
+                             bg-gradient-to-r from-purple-500 to-pink-500 
+                             text-white shadow 
+                             hover:from-purple-600 hover:to-pink-600 
+                             disabled:bg-gray-400 flex items-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <svg
+                        className="animate-spin h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                        ></path>
+                      </svg>
+                      Processing...
+                    </>
+                  ) : (
+                    "🚀 Upload & Analyze"
+                  )}
+                </button>
 
-                  <button
-                    onClick={handleDownloadOriginal}
-                    disabled={!file}
-                    className="px-4 py-2 rounded-full border text-purple-700 border-purple-200 hover:bg-purple-50 dark:border-gray-600 dark:text-purple-300 dark:hover:bg-gray-700"
-                  >
-                    📂 Download Original
-                  </button>
+                <button
+                  onClick={handleDownloadOriginal}
+                  disabled={!file}
+                  className="px-4 py-2 rounded-full border text-purple-700 border-purple-200 hover:bg-purple-50 dark:border-gray-600 dark:text-purple-300 dark:hover:bg-gray-700"
+                >
+                  📂 Download Original
+                </button>
 
-                  <button
-                    onClick={handleDownloadText}
-                    disabled={!text}
-                    className="px-4 py-2 rounded-full border text-purple-700 border-purple-200 hover:bg-purple-50 dark:border-gray-600 dark:text-purple-300 dark:hover:bg-gray-700"
-                  >
-                    📝 Download Extracted Text
-                  </button>
-                </div>
+                <button
+                  onClick={handleDownloadText}
+                  disabled={!text}
+                  className="px-4 py-2 rounded-full border text-purple-700 border-purple-200 hover:bg-purple-50 dark:border-gray-600 dark:text-purple-300 dark:hover:bg-gray-700"
+                >
+                  📝 Download Extracted Text
+                </button>
               </div>
             </div>
+          </div>
 
-            {/* Results Section */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
-              {/* Stats */}
-              <div className="flex flex-wrap gap-3 justify-center mb-6">
-                <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">🔡 Chars: {stats.chars}</span>
-                <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">📖 Words: {stats.words}</span>
-                <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">#️⃣ Tags: {stats.hashtags}</span>
-                <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">❓ Questions: {stats.questions}</span>
-                <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">😀 Sentiment: {stats.sentiment}</span>
+          {/* Results Section */}
+          <div
+            className={`rounded-2xl shadow-xl p-6 ${
+              darkMode ? "bg-gray-800" : "bg-white"
+            }`}
+          >
+            {/* Stats */}
+            <div className="flex flex-wrap gap-3 justify-center mb-6">
+              <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">
+                🔡 Chars: {stats.chars}
+              </span>
+              <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">
+                📖 Words: {stats.words}
+              </span>
+              <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">
+                #️⃣ Tags: {stats.hashtags}
+              </span>
+              <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">
+                ❓ Questions: {stats.questions}
+              </span>
+              <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">
+                😀 Sentiment: {stats.sentiment}
+              </span>
+            </div>
+
+            {/* Extracted Text */}
+            {text && (
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                  📝 Extracted Text
+                </h2>
+                <textarea
+                  className="w-full h-48 p-3 border rounded-lg bg-gray-50 dark:bg-gray-900 font-mono text-sm"
+                  value={text}
+                  readOnly
+                />
               </div>
+            )}
 
-              {/* Extracted Text */}
-              {text && (
-                <div className="mb-6">
-                  <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">📝 Extracted Text</h2>
-                  <textarea
-                    className="w-full h-48 p-3 border rounded-lg bg-gray-50 dark:bg-gray-900 font-mono text-sm"
-                    value={text}
-                    readOnly
-                  />
+            {/* Suggestions */}
+            {suggestions.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                  💡 Suggestions
+                </h2>
+                <ul className="list-disc pl-6 space-y-1 text-gray-700 dark:text-gray-300">
+                  {suggestions.map((s, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span>✨</span> {s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* History with Clear button */}
+            {history.length > 0 && (
+              <div className="bg-white/70 dark:bg-gray-900 rounded-lg p-4 shadow-inner">
+                <div className="flex justify-between items-center mb-2">
+                  <h2 className="text-lg font-semibold">📂 History</h2>
+                  <button
+                    onClick={() => {
+                      setHistory([]);
+                      localStorage.removeItem("history");
+                    }}
+                    className="text-red-500 text-sm hover:underline"
+                  >
+                    🗑 Clear
+                  </button>
                 </div>
-              )}
-
-              {/* Suggestions */}
-              {suggestions.length > 0 && (
-                <div className="mb-6">
-                  <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">💡 Suggestions</h2>
-                  <ul className="list-disc pl-6 space-y-1 text-gray-700 dark:text-gray-300">
-                    {suggestions.map((s, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <span>✨</span> {s}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* History with Clear button */}
-              {history.length > 0 && (
-                <div className="bg-white/70 dark:bg-gray-900 rounded-lg p-4 shadow-inner">
-                  <div className="flex justify-between items-center mb-2">
-                    <h2 className="text-lg font-semibold">📂 History</h2>
-                    <button
-                      onClick={() => {
-                        setHistory([]);
-                        localStorage.removeItem("history");
-                      }}
-                      className="text-red-500 text-sm hover:underline"
+                <ul className="space-y-2 text-sm">
+                  {history.map((h, i) => (
+                    <li
+                      key={i}
+                      className="p-2 border rounded flex justify-between dark:border-gray-700"
                     >
-                      🗑 Clear
-                    </button>
-                  </div>
-                  <ul className="space-y-2 text-sm">
-                    {history.map((h, i) => (
-                      <li key={i} className="p-2 border rounded flex justify-between dark:border-gray-700">
-                        <span className="font-medium">{h.filename}</span>
-                        <span className="text-gray-500 dark:text-gray-400">
-                          {h.words} words • {h.hashtags} tags • {h.sentiment}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Footer */}
-              <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-8">
-                Made with ❤️ using <span className="font-medium">FastAPI</span> +{" "}
-                <span className="font-medium">React</span>
+                      <span className="font-medium">{h.filename}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        {h.words} words • {h.hashtags} tags • {h.sentiment}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
+            )}
+
+            {/* Footer */}
+            <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-8">
+              Made with ❤️ using <span className="font-medium">FastAPI</span> +{" "}
+              <span className="font-medium">React</span>
             </div>
           </div>
         </div>
