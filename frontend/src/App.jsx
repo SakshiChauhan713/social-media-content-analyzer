@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";  // useEffect add kiya
+import { useState, useEffect } from "react";
 
 const API = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
 console.log("API Base from env:", import.meta.env.VITE_API_BASE);
@@ -8,7 +8,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [text, setText] = useState("");
   const [suggestions, setSuggestions] = useState([]);
-  const [toast, setToast] = useState(null); 
+  const [toast, setToast] = useState(null);
   const [history, setHistory] = useState([]);
   const [stats, setStats] = useState({
     chars: 0,
@@ -19,6 +19,15 @@ export default function App() {
   });
 
   const [dragActive, setDragActive] = useState(false);
+
+  // 🌙 Dark mode state (saved in LocalStorage)
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("darkMode") === "true"
+  );
+
+  useEffect(() => {
+    localStorage.setItem("darkMode", darkMode);
+  }, [darkMode]);
 
   // ✅ Load history from LocalStorage on app start
   useEffect(() => {
@@ -159,184 +168,200 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-pink-50 via-purple-50 to-indigo-50 p-6">
-      {/* Toast */}
-      {toast && (
-        <div
-          className={`fixed top-4 right-4 px-4 py-2 rounded-lg shadow text-sm ${
-            toast.type === "error"
-              ? "bg-red-600 text-white"
-              : toast.type === "warning"
-              ? "bg-yellow-400 text-black"
-              : "bg-black text-white"
-          }`}
-        >
-          {toast.msg}
-        </div>
-      )}
+    <div className={darkMode ? "dark" : ""}>
+      <div className="min-h-screen bg-gradient-to-r from-pink-50 via-purple-50 to-indigo-50 
+                      dark:from-gray-900 dark:via-gray-800 dark:to-gray-900
+                      p-6 text-gray-900 dark:text-gray-100">
+        {/* Toast */}
+        {toast && (
+          <div
+            className={`fixed top-4 right-4 px-4 py-2 rounded-lg shadow text-sm ${
+              toast.type === "error"
+                ? "bg-red-600 text-white"
+                : toast.type === "warning"
+                ? "bg-yellow-400 text-black"
+                : "bg-black text-white"
+            }`}
+          >
+            {toast.msg}
+          </div>
+        )}
 
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-extrabold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-500 to-indigo-600">
-          📑 Social Media Content Analyzer
-        </h1>
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-4xl font-extrabold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-500 to-indigo-600">
+            📑 Social Media Content Analyzer
+          </h1>
 
-        {/* Responsive Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Upload Section */}
-          <div className="bg-white rounded-2xl shadow-xl p-6">
-            <div
-              className={`flex flex-col items-center gap-4 mb-6 w-full border-2 border-dashed rounded-lg p-6 transition
-              ${dragActive ? "border-purple-500 bg-purple-50" : "border-gray-300 bg-white/50"}`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
+          {/* 🌙 Dark Mode Toggle */}
+          <div className="flex justify-center mb-4">
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="px-4 py-2 rounded-full text-sm font-medium 
+                         bg-gray-200 hover:bg-gray-300 
+                         dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
             >
-              <input
-                type="file"
-                accept=".pdf,.png,.jpg,.jpeg,.webp,.tiff,.bmp"
-                onChange={handleFileChange}
-                className="hidden"
-                id="fileInput"
-              />
-              <label htmlFor="fileInput" className="cursor-pointer text-center text-gray-600">
-                <p className="text-lg">📂 Drag & Drop your file here</p>
-                <p className="text-sm">or click to browse</p>
-              </label>
-
-              {file && (
-                <p className="text-sm text-gray-500 mt-2">
-                  Selected: <span className="font-medium">{file.name}</span>
-                </p>
-              )}
-
-              <div className="flex gap-3 mt-3 flex-wrap justify-center">
-                {/* Upload Button with spinner */}
-                <button
-                  onClick={handleUpload}
-                  disabled={loading || !file}
-                  className="px-6 py-2 rounded-full font-semibold 
-                             bg-gradient-to-r from-purple-500 to-pink-500 
-                             text-white shadow 
-                             hover:from-purple-600 hover:to-pink-600 
-                             disabled:bg-gray-400 flex items-center gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <svg
-                        className="animate-spin h-5 w-5 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                        ></path>
-                      </svg>
-                      Processing...
-                    </>
-                  ) : (
-                    "🚀 Upload & Analyze"
-                  )}
-                </button>
-
-                <button
-                  onClick={handleDownloadOriginal}
-                  disabled={!file}
-                  className="px-4 py-2 rounded-full border text-purple-700 border-purple-200 hover:bg-purple-50"
-                >
-                  📂 Download Original
-                </button>
-
-                <button
-                  onClick={handleDownloadText}
-                  disabled={!text}
-                  className="px-4 py-2 rounded-full border text-purple-700 border-purple-200 hover:bg-purple-50"
-                >
-                  📝 Download Extracted Text
-                </button>
-              </div>
-            </div>
+              {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
+            </button>
           </div>
 
-          {/* Results Section */}
-          <div className="bg-white rounded-2xl shadow-xl p-6">
-            {/* Stats */}
-            <div className="flex flex-wrap gap-3 justify-center mb-6">
-              <span className="px-3 py-1 bg-gray-100 rounded-full text-sm">🔡 Chars: {stats.chars}</span>
-              <span className="px-3 py-1 bg-gray-100 rounded-full text-sm">📖 Words: {stats.words}</span>
-              <span className="px-3 py-1 bg-gray-100 rounded-full text-sm">#️⃣ Tags: {stats.hashtags}</span>
-              <span className="px-3 py-1 bg-gray-100 rounded-full text-sm">❓ Questions: {stats.questions}</span>
-              <span className="px-3 py-1 bg-gray-100 rounded-full text-sm">😀 Sentiment: {stats.sentiment}</span>
-            </div>
-
-            {/* Extracted Text */}
-            {text && (
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold text-gray-700 mb-2">📝 Extracted Text</h2>
-                <textarea
-                  className="w-full h-48 p-3 border rounded-lg bg-gray-50 font-mono text-sm"
-                  value={text}
-                  readOnly
+          {/* Responsive Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Upload Section */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
+              <div
+                className={`flex flex-col items-center gap-4 mb-6 w-full border-2 border-dashed rounded-lg p-6 transition
+                ${dragActive ? "border-purple-500 bg-purple-50 dark:bg-gray-700" : "border-gray-300 bg-white/50 dark:bg-gray-900"}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <input
+                  type="file"
+                  accept=".pdf,.png,.jpg,.jpeg,.webp,.tiff,.bmp"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="fileInput"
                 />
-              </div>
-            )}
+                <label htmlFor="fileInput" className="cursor-pointer text-center text-gray-600 dark:text-gray-300">
+                  <p className="text-lg">📂 Drag & Drop your file here</p>
+                  <p className="text-sm">or click to browse</p>
+                </label>
 
-            {/* Suggestions */}
-            {suggestions.length > 0 && (
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold text-gray-700 mb-2">💡 Suggestions</h2>
-                <ul className="list-disc pl-6 space-y-1 text-gray-700">
-                  {suggestions.map((s, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <span>✨</span> {s}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+                {file && (
+                  <p className="text-sm text-gray-500 mt-2 dark:text-gray-400">
+                    Selected: <span className="font-medium">{file.name}</span>
+                  </p>
+                )}
 
-            {/* History with Clear button */}
-            {history.length > 0 && (
-              <div className="bg-white/70 rounded-lg p-4 shadow-inner">
-                <div className="flex justify-between items-center mb-2">
-                  <h2 className="text-lg font-semibold">📂 History</h2>
+                <div className="flex gap-3 mt-3 flex-wrap justify-center">
+                  {/* Upload Button with spinner */}
                   <button
-                    onClick={() => {
-                      setHistory([]);
-                      localStorage.removeItem("history");
-                    }}
-                    className="text-red-500 text-sm hover:underline"
+                    onClick={handleUpload}
+                    disabled={loading || !file}
+                    className="px-6 py-2 rounded-full font-semibold 
+                               bg-gradient-to-r from-purple-500 to-pink-500 
+                               text-white shadow 
+                               hover:from-purple-600 hover:to-pink-600 
+                               disabled:bg-gray-400 flex items-center gap-2"
                   >
-                    🗑 Clear
+                    {loading ? (
+                      <>
+                        <svg
+                          className="animate-spin h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                          ></path>
+                        </svg>
+                        Processing...
+                      </>
+                    ) : (
+                      "🚀 Upload & Analyze"
+                    )}
+                  </button>
+
+                  <button
+                    onClick={handleDownloadOriginal}
+                    disabled={!file}
+                    className="px-4 py-2 rounded-full border text-purple-700 border-purple-200 hover:bg-purple-50 dark:border-gray-600 dark:text-purple-300 dark:hover:bg-gray-700"
+                  >
+                    📂 Download Original
+                  </button>
+
+                  <button
+                    onClick={handleDownloadText}
+                    disabled={!text}
+                    className="px-4 py-2 rounded-full border text-purple-700 border-purple-200 hover:bg-purple-50 dark:border-gray-600 dark:text-purple-300 dark:hover:bg-gray-700"
+                  >
+                    📝 Download Extracted Text
                   </button>
                 </div>
-                <ul className="space-y-2 text-sm">
-                  {history.map((h, i) => (
-                    <li key={i} className="p-2 border rounded flex justify-between">
-                      <span className="font-medium">{h.filename}</span>
-                      <span className="text-gray-500">
-                        {h.words} words • {h.hashtags} tags • {h.sentiment}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
               </div>
-            )}
+            </div>
 
-            {/* Footer */}
-            <div className="text-center text-sm text-gray-500 mt-8">
-              Made with ❤️ using <span className="font-medium">FastAPI</span> +{" "}
-              <span className="font-medium">React</span>
+            {/* Results Section */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
+              {/* Stats */}
+              <div className="flex flex-wrap gap-3 justify-center mb-6">
+                <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">🔡 Chars: {stats.chars}</span>
+                <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">📖 Words: {stats.words}</span>
+                <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">#️⃣ Tags: {stats.hashtags}</span>
+                <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">❓ Questions: {stats.questions}</span>
+                <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">😀 Sentiment: {stats.sentiment}</span>
+              </div>
+
+              {/* Extracted Text */}
+              {text && (
+                <div className="mb-6">
+                  <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">📝 Extracted Text</h2>
+                  <textarea
+                    className="w-full h-48 p-3 border rounded-lg bg-gray-50 dark:bg-gray-900 font-mono text-sm"
+                    value={text}
+                    readOnly
+                  />
+                </div>
+              )}
+
+              {/* Suggestions */}
+              {suggestions.length > 0 && (
+                <div className="mb-6">
+                  <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">💡 Suggestions</h2>
+                  <ul className="list-disc pl-6 space-y-1 text-gray-700 dark:text-gray-300">
+                    {suggestions.map((s, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span>✨</span> {s}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* History with Clear button */}
+              {history.length > 0 && (
+                <div className="bg-white/70 dark:bg-gray-900 rounded-lg p-4 shadow-inner">
+                  <div className="flex justify-between items-center mb-2">
+                    <h2 className="text-lg font-semibold">📂 History</h2>
+                    <button
+                      onClick={() => {
+                        setHistory([]);
+                        localStorage.removeItem("history");
+                      }}
+                      className="text-red-500 text-sm hover:underline"
+                    >
+                      🗑 Clear
+                    </button>
+                  </div>
+                  <ul className="space-y-2 text-sm">
+                    {history.map((h, i) => (
+                      <li key={i} className="p-2 border rounded flex justify-between dark:border-gray-700">
+                        <span className="font-medium">{h.filename}</span>
+                        <span className="text-gray-500 dark:text-gray-400">
+                          {h.words} words • {h.hashtags} tags • {h.sentiment}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Footer */}
+              <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-8">
+                Made with ❤️ using <span className="font-medium">FastAPI</span> +{" "}
+                <span className="font-medium">React</span>
+              </div>
             </div>
           </div>
         </div>
