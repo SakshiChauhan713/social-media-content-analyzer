@@ -8,9 +8,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [text, setText] = useState("");
   const [suggestions, setSuggestions] = useState([]);
-  const [error, setError] = useState("");
-  const [warning, setWarning] = useState("");
-  const [toast, setToast] = useState("");
+  const [toast, setToast] = useState(null); // { msg: string, type: "info" | "error" | "warning" }
   const [history, setHistory] = useState([]);
   const [stats, setStats] = useState({
     chars: 0,
@@ -22,14 +20,13 @@ export default function App() {
 
   const [dragActive, setDragActive] = useState(false);
 
-  const showToast = (msg) => {
-    setToast(msg);
-    setTimeout(() => setToast(""), 2500);
+  // Show toast
+  const showToast = (msg, type = "info") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
   };
 
   const resetStates = () => {
-    setError("");
-    setWarning("");
     setText("");
     setSuggestions([]);
     setStats({
@@ -81,26 +78,42 @@ export default function App() {
   };
 
   const handleUpload = async () => {
-    if (!file) return showToast("⚠ Please select a file first!");
+    if (!file) return showToast("⚠ Please select a file first!", "warning");
     setLoading(true);
     resetStates();
 
     try {
+      // Extract
       const form = new FormData();
       form.append("file", file);
       const res = await fetch(`${API}/extract`, { method: "POST", body: form });
+
+      if (!res.ok) {
+        throw new Error(`Extract failed (${res.status})`);
+      }
+
       const data = await res.json();
       setText(data.text || "");
-      if (data.warning) setWarning(data.warning);
 
+      if (data.warning) {
+        showToast(data.warning, "warning");
+      }
+
+      // Analyze
       const res2 = await fetch(`${API}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: data.text || "" }),
       });
+
+      if (!res2.ok) {
+        throw new Error(`Analyze failed (${res2.status})`);
+      }
+
       const analysis = await res2.json();
       setSuggestions(analysis.suggestions || []);
 
+      // Stats
       const words = (data.text || "").trim().split(/\s+/).filter(Boolean);
       const hashtags = (data.text.match(/#/g) || []).length;
       const questions = (data.text.match(/\?/g) || []).length;
@@ -122,18 +135,28 @@ export default function App() {
 
       setHistory((prev) => [...prev, { filename: file.name, ...newStats }]);
 
-      showToast("✅ Analysis complete!");
+      showToast("✅ Analysis complete!", "info");
     } catch (err) {
-      setError("Something went wrong!");
+      console.error(err);
+      showToast("❌ Something went wrong! " + err.message, "error");
     }
     setLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-pink-50 via-purple-50 to-indigo-50 p-6">
+      {/* Toast */}
       {toast && (
-        <div className="fixed top-4 right-4 bg-black text-white text-sm px-4 py-2 rounded-lg shadow">
-          {toast}
+        <div
+          className={`fixed top-4 right-4 px-4 py-2 rounded-lg shadow text-sm ${
+            toast.type === "error"
+              ? "bg-red-600 text-white"
+              : toast.type === "warning"
+              ? "bg-yellow-400 text-black"
+              : "bg-black text-white"
+          }`}
+        >
+          {toast.msg}
         </div>
       )}
 
@@ -144,7 +167,7 @@ export default function App() {
 
         {/* Responsive Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Upload Section (Left) */}
+          {/* Upload Section */}
           <div className="bg-white rounded-2xl shadow-xl p-6">
             <div
               className={`flex flex-col items-center gap-4 mb-6 w-full border-2 border-dashed rounded-lg p-6 transition
@@ -172,6 +195,7 @@ export default function App() {
               )}
 
               <div className="flex gap-3 mt-3 flex-wrap justify-center">
+                {/* Upload Button with spinner */}
                 <button
                   onClick={handleUpload}
                   disabled={loading || !file}
@@ -179,9 +203,35 @@ export default function App() {
                              bg-gradient-to-r from-purple-500 to-pink-500 
                              text-white shadow 
                              hover:from-purple-600 hover:to-pink-600 
-                             disabled:bg-gray-400"
+                             disabled:bg-gray-400 flex items-center gap-2"
                 >
-                  {loading ? "⏳ Processing..." : "🚀 Upload & Analyze"}
+                  {loading ? (
+                    <>
+                      <svg
+                        className="animate-spin h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                        ></path>
+                      </svg>
+                      Processing...
+                    </>
+                  ) : (
+                    "🚀 Upload & Analyze"
+                  )}
                 </button>
 
                 <button
@@ -200,17 +250,10 @@ export default function App() {
                   📝 Download Extracted Text
                 </button>
               </div>
-
-              {error && <p className="text-red-500 text-sm mt-2">⚠ {error}</p>}
-              {warning && (
-                <p className="text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded text-sm mt-2">
-                  ⚠ {warning}
-                </p>
-              )}
             </div>
           </div>
 
-          {/* Results Section (Right) */}
+          {/* Results Section */}
           <div className="bg-white rounded-2xl shadow-xl p-6">
             {/* Stats */}
             <div className="flex flex-wrap gap-3 justify-center mb-6">
@@ -275,5 +318,4 @@ export default function App() {
     </div>
   );
 }
-
 
