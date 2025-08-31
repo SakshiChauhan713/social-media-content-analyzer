@@ -177,7 +177,7 @@ export default function App() {
 
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-extrabold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-500 to-indigo-600">
-          📑 Social Media Content Analyzer
+          📑 SOCIAL MEDIA CONTENT ANALYZER
         </h1>
 
         {/* 🌙 Dark Mode Toggle */}
@@ -279,12 +279,15 @@ export default function App() {
             </div>
 
             {/* Extracted Text */}
-            {text && (
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">📝 Extracted Text</h2>
-                <textarea className="w-full h-48 p-3 border rounded-lg bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-100 font-mono text-sm" value={text} readOnly/>
-              </div>
-            )}
+            <textarea
+  className={`w-full h-48 p-3 border rounded-lg font-mono text-sm transition-colors ${
+    darkMode
+      ? "bg-gray-900 text-gray-100"
+      : "bg-pink-50 text-gray-800"   // ✅ light mode me pink shade
+  }`}
+  value={text}
+  readOnly
+/>
 
             {/* Suggestions */}
             {suggestions.length > 0 && (
@@ -301,22 +304,44 @@ export default function App() {
             )}
 
             {/* History */}
-            {history.length > 0 && (
-              <div className="rounded-lg p-4 shadow-inner bg-pink-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100">
-                <div className="flex justify-between items-center mb-2">
-                  <h2 className="text-lg font-semibold">📂 History</h2>
-                  <button onClick={() => { setHistory([]); localStorage.removeItem("history"); }} className="text-red-500 text-sm hover:underline">🗑 Clear</button>
-                </div>
-                <ul className="space-y-2 text-sm">
-                  {history.map((h, i) => (
-                    <li key={i} className="p-2 border rounded flex justify-between bg-purple-50 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-                      <span className="font-medium">{h.filename}</span>
-                      <span className="text-gray-500 dark:text-gray-400">{h.words} words • {h.hashtags} tags • {h.sentiment}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+          <div
+  className={`rounded-lg p-4 shadow-inner transition-colors ${
+    darkMode
+      ? "bg-gray-900 text-gray-100"
+      : "bg-pink-100 text-gray-800"   // ✅ thoda darker pink shade
+  }`}
+>
+  <div className="flex justify-between items-center mb-2">
+    <h2 className="text-lg font-semibold">📂 History</h2>
+    <button
+      onClick={() => {
+        setHistory([]);
+        localStorage.removeItem("history");
+      }}
+      className="text-red-500 text-sm hover:underline"
+    >
+      🗑 Clear
+    </button>
+  </div>
+  <ul className="space-y-2 text-sm">
+    {history.map((h, i) => (
+      <li
+        key={i}
+        className={`p-2 border rounded flex justify-between transition-colors ${
+          darkMode
+            ? "bg-gray-800 text-gray-200"
+            : "bg-purple-50 text-gray-800"   // ✅ light purple cards
+        }`}
+      >
+        <span className="font-medium">{h.filename}</span>
+        <span className="text-gray-500 dark:text-gray-400">
+          {h.words} words • {h.hashtags} tags • {h.sentiment}
+        </span>
+      </li>
+    ))}
+  </ul>
+</div>
+
 
             {/* Footer */}
             <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-8">
